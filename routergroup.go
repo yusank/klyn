@@ -32,14 +32,10 @@ type RouterGroup struct {
 	root     bool
 }
 
-const (
-	abortIndex = 1<<7 - 1
-)
-
 func (rg *RouterGroup) handle(method, relativePath string, handlers HandlersChain) KRoutes {
 	absolutePath := rg.calculatePath(relativePath)
 	handlers = rg.combineHandlers(handlers)
-	rg.core.addRouter(absolutePath, handlers)
+	rg.core.addRouter(method, absolutePath, handlers)
 	return rg.returnObj()
 }
 
@@ -50,7 +46,11 @@ func (rg *RouterGroup) UseMiddleware(middleware ...HandlerFunc) KRoutes {
 }
 
 func (rg *RouterGroup) Group(relativePath string, handler ...HandlerFunc) *RouterGroup {
-	return &RouterGroup{}
+	return &RouterGroup{
+		Handlers: rg.combineHandlers(handler),
+		basePath: rg.calculatePath(relativePath),
+		core:     rg.core,
+	}
 }
 
 func (rg *RouterGroup) Handle(method, relativePath string, handlers ...HandlerFunc) KRoutes {
@@ -116,6 +116,9 @@ func (rg *RouterGroup) combineHandlers(handlers HandlersChain) HandlersChain {
 }
 
 func (rg *RouterGroup) returnObj() KRoutes {
+	if rg.root {
+		return rg.core
+	}
 	return rg
 }
 

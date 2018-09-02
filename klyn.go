@@ -5,8 +5,12 @@
 package klyn
 
 import (
+	"log"
+	"net/http"
+	"os"
 	"reflect"
 	"runtime"
+	"sync"
 )
 
 const (
@@ -37,7 +41,11 @@ type RoutesInfo []RouteInfo
 type Core struct {
 	RouterGroup
 
+	UseRawPath         bool
+	UnescapePathValues bool
+
 	trees methodTrees
+	pool  sync.Pool
 }
 
 var _ KRouter = &Core{}
@@ -47,10 +55,13 @@ func New() *Core {
 		RouterGroup: RouterGroup{
 			Handlers: nil,
 			basePath: "",
-			root:     false,
+			root:     true,
 		},
 
 		trees: make(methodTrees, 0, 9),
+	}
+	core.pool.New = func() interface{} {
+		return core.allocateContext()
 	}
 
 	core.RouterGroup.core = core
@@ -61,6 +72,10 @@ func New() *Core {
 func Default() *Core {
 	core := New()
 	return core
+}
+
+func (core *Core) allocateContext() *Context {
+	return &Context{core: core}
 }
 
 func (core *Core) UseMiddleware(middleware ...HandlerFunc) KRoutes {
@@ -107,4 +122,63 @@ func iterate(method, path string, routes RoutesInfo, root *node) RoutesInfo {
 
 func nameOfFunction(handler interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+}
+
+func (core *Core) Service(addr ...string) (err error) {
+	address := resolveAddress(addr)
+	log.Println("start service on:", address)
+	err = http.ListenAndServe(address, core)
+	return
+}
+
+func resolveAddress(addr []string) string {
+	switch len(addr) {
+	case 0:
+		if port := os.Getenv("PORT"); port != "" {
+			return ":" + port
+		}
+		return ":8080"
+	case 1:
+		return addr[0]
+	default:
+		panic("too much parameters")
+	}
+}
+
+// ServeHTTP conforms to the http.Handler interface.
+func (core *Core) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	c := core.pool.Get().(*Context)
+	c.memWriter.reset(w)
+	c.Request = req
+	c.reset()
+
+	core.handleHTTPRequest(c)
+
+	core.pool.Put(c)
+}
+
+func (core *Core) handleHTTPRequest(c *Context) {
+	method := c.Request.Method
+	path := c.Request.URL.Path
+	unescape := false
+	if core.UseRawPath && len(c.Request.URL.RawPath) > 0 {
+		path = c.Request.URL.RawPath
+		unescape = core.UnescapePathValues
+	}
+
+	t := core.trees
+	for i, tl := 0, len(t); i < tl; i++ {
+		if t[i].method == method {
+			root := t[i].root
+			handlers, params, _ := root.getValue(path, c.Params, unescape)
+			if handlers != nil {
+				c.handlers = handlers
+				c.Params = params
+				c.Next()
+				return
+			}
+		}
+	}
+
+	return
 }
