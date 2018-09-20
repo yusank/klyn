@@ -70,12 +70,20 @@ func (c *Context) Abort() {
 	c.index = abortIndex
 }
 
+// JSON - write response as json type
 func (c *Context) JSON(code int, v interface{}) {
 	c.Status(code)
 	c.jsonContent()
 	body, _ := json.Marshal(v)
 	c.Writer.Write(body)
 	return
+}
+
+// Data - write response as contentType
+func (c *Context) Data(code int, contentType string, data []byte) {
+	c.Status(code)
+	c.Writer.Header().Set("Content-Type", contentType)
+	c.Writer.Write(data)
 }
 
 func (c *Context) AbortWithStatus(code int) {
