@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	// Version - version of project
 	Version                = "v0.0.1"
 	defaultMultipartMemory = 32 << 10 // 16M
 )

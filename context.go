@@ -22,9 +22,10 @@ type Context struct {
 	Writer    ResponseWriter
 	Params    Params
 
-	handlers HandlersChain
-	core     *Core
-	index    int8
+	handlers  HandlersChain
+	core      *Core
+	index     int8
+	cachePool map[string]interface{} // temp pool for context
 }
 
 // reset context
@@ -32,6 +33,7 @@ func (c *Context) reset() {
 	c.Writer = &c.memWriter
 	c.handlers = nil
 	c.index = -1
+	c.cachePool = nil
 }
 
 // Copy returns a copy of the current context that can be safely used outside the request's scope.
@@ -95,4 +97,19 @@ func (c *Context) Status(code int) {
 // write json content type to header
 func (c *Context) jsonContent() {
 	c.Writer.Header().Set("Content-Type", jsonContent)
+}
+
+// Set - set key-value to Context.cachePool
+func (c *Context) Set(key string, value interface{}) {
+	if c.cachePool == nil {
+		c.cachePool = make(map[string]interface{})
+	}
+
+	c.cachePool[key] = value
+}
+
+// Get - get value from Context.cachePool
+func (c *Context) Get(key string) (value interface{}, exist bool) {
+	value, exist = c.cachePool[key]
+	return
 }
