@@ -66,8 +66,15 @@ func (c *Context) IsAbort() bool {
 	return c.index < abortIndex
 }
 
+// Abort - abort chain
 func (c *Context) Abort() {
 	c.index = abortIndex
+}
+
+// AbortWithJSON - abort chain and response with json
+func (c *Context) AbortWithJSON(v interface{}) {
+	c.index = abortIndex
+	c.JSON(http.StatusOK, v)
 }
 
 // JSON - write response as json type
@@ -92,7 +99,7 @@ func (c *Context) AbortWithStatus(code int) {
 	return
 }
 
-func (c *Context) AbortWithJSON(code int, v interface{}) {
+func (c *Context) AbortWithJSONCode(code int, v interface{}) {
 	c.Abort()
 	c.JSON(code, v)
 }

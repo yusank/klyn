@@ -42,14 +42,18 @@ type RoutesInfo []RouteInfo
 type Core struct {
 	RouterGroup
 
-	UseRawPath         bool
-	UnescapePathValues bool
+	UseRawPath             bool
+	UnescapePathValues     bool
+	HandleMethodNotAllowed bool
 
 	trees methodTrees
 	pool  sync.Pool
 }
 
 var _ KRouter = &Core{}
+var (
+	default405Body = []byte("405 method not allowed")
+)
 
 func New() *Core {
 	core := &Core{
@@ -181,5 +185,22 @@ func (core *Core) handleHTTPRequest(c *Context) {
 		}
 	}
 
+	if core.HandleMethodNotAllowed {
+		serverError(c, 405, default405Body)
+	}
+
 	return
+}
+
+func serverError(c *Context, code int, defaultMessage []byte) {
+	c.memWriter.status = code
+	c.Next()
+	if !c.memWriter.Written() {
+		if c.memWriter.Status() == code {
+			c.memWriter.Header()["Content-Type"] = []string{"text/plain"}
+			c.Writer.Write(defaultMessage)
+		} else {
+			c.memWriter.WriteHeaderNow()
+		}
+	}
 }
