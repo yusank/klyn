@@ -21,6 +21,7 @@ const (
 
 type HandlerFunc func(*Context)
 type HandlersChain []HandlerFunc
+type K map[string]interface{}
 
 // Last returns the last handler in the chain. ie. the last handler is the main own.
 func (c HandlersChain) Last() HandlerFunc {
@@ -45,6 +46,8 @@ type Core struct {
 	UseRawPath             bool
 	UnescapePathValues     bool
 	HandleMethodNotAllowed bool
+
+	ForwardByClientIP bool
 
 	trees methodTrees
 	pool  sync.Pool
@@ -76,6 +79,7 @@ func New() *Core {
 
 func Default() *Core {
 	core := New()
+	core.UseMiddleware(Logger())
 	return core
 }
 

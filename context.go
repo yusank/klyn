@@ -6,7 +6,9 @@ package klyn
 
 import (
 	"math"
+	"net"
 	"net/http"
+	"strings"
 
 	"encoding/json"
 )
@@ -16,6 +18,7 @@ const (
 	jsonContent      = "application/json; charset=utf-8"
 )
 
+// Context is context of http request
 type Context struct {
 	memWriter responseWriter
 	Request   *http.Request
@@ -25,7 +28,7 @@ type Context struct {
 	handlers  HandlersChain
 	core      *Core
 	index     int8
-	cachePool map[string]interface{} // temp pool for context
+	cachePool map[string]interface{} // memory cache pool for context
 }
 
 // reset context
@@ -179,4 +182,31 @@ func (c *Context) GetBool(key string) (b bool) {
 	}
 
 	return
+}
+
+// ClientIP get client ip
+func (c *Context) ClientIP() string {
+	if c.core.ForwardByClientIP {
+		clientIP := c.requestHeader("X-Forwarded-For")
+		clientIP = strings.TrimSpace(strings.Split(clientIP, ",")[0])
+		if clientIP == "" {
+			clientIP = strings.TrimSpace(c.requestHeader("X-Real-Ip"))
+		}
+		if clientIP != "" {
+			return clientIP
+		}
+	}
+
+	if ip, _, err := net.SplitHostPort(c.Request.RemoteAddr); err == nil {
+		return ip
+	}
+
+	return ""
+}
+
+/*
+ * Request
+ */
+func (c *Context) requestHeader(key string) string {
+	return c.Request.Header.Get(key)
 }
