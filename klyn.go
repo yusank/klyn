@@ -99,6 +99,7 @@ func (core *Core) addRouter(method, path string, handlers HandlersChain) {
 	assert1(method != "", "HTTP method can not be empty")
 	assert1(len(handlers) > 0, "there must be at least one handler")
 
+	printRouter(method, path, handlers)
 	root := core.trees.get(method)
 	if root == nil {
 		root = new(node)
@@ -106,6 +107,11 @@ func (core *Core) addRouter(method, path string, handlers HandlersChain) {
 	}
 
 	root.addRoute(path, handlers)
+}
+
+func printRouter(method, path string, handlers HandlersChain) {
+	handlerName := nameOfFunction(handlers.Last())
+	log.Printf("%-7s  %-20s --> %s (handlers:%d) \n", method, path, handlerName, len(handlers))
 }
 
 func (core *Core) Routes() (routes RoutesInfo) {

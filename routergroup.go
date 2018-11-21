@@ -4,7 +4,9 @@
 
 package klyn
 
-import "regexp"
+import (
+	"regexp"
+)
 
 type KRouter interface {
 	KRoutes
