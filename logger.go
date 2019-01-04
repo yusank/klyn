@@ -75,8 +75,8 @@ func LoggerWithWriter(out io.Writer, except ...string) HandlerFunc {
 				path += "?" + raw
 			}
 
-			fmt.Fprintf(out, "[KLYN] %v |%s %3d %s| %13v | %15s |%s %-7s %s| %s\n",
-				end.Format("2006/01/02 - 15:04:05"),
+			fmt.Fprintf(out, "%v [KLYN] |%s %3d %s| %13v | %15s |%s %-7s %s| %s\n",
+				end.Format("2006/01/02 15:04:05"),
 				statusColor, statusCode, resetColor,
 				useTime,
 				clientIP,

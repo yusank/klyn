@@ -68,7 +68,7 @@ func New() *Core {
 		},
 
 		HandleMethodNotAllowed: true,
-		trees: make(methodTrees, 0, 9),
+		trees:                  make(methodTrees, 0, 9),
 	}
 	core.pool.New = func() interface{} {
 		return core.allocateContext()
