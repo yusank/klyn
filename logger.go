@@ -1,6 +1,7 @@
 package klyn
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -49,14 +50,14 @@ func LoggerWithWriter(except ...string) HandlerFunc {
 				path += "?" + raw
 			}
 
-			lFunc := logFuncForStatus(statusCode)
-			lFunc(map[string]interface{}{
+			//lFunc := logFuncForStatus(statusCode)
+			defaultKlynLog.Info(map[string]interface{}{
 				"clientIP":   clientIP,
 				"method":     method,
 				"path":       path,
 				"statusCode": statusCode,
 				"time":       end.Format("2006/01/02 15:04:05"),
-				"useTime":    useTime,
+				"useTime":    fmt.Sprintf("%v", useTime),
 			})
 
 		}
