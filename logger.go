@@ -50,8 +50,8 @@ func LoggerWithWriter(except ...string) HandlerFunc {
 				path += "?" + raw
 			}
 
-			//lFunc := logFuncForStatus(statusCode)
-			defaultKlynLog.Info(map[string]interface{}{
+			lFunc := logFuncForStatus(statusCode)
+			lFunc(map[string]interface{}{
 				"clientIP":   clientIP,
 				"method":     method,
 				"path":       path,
