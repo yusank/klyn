@@ -76,7 +76,7 @@ func (c *Context) Abort() {
 
 // AbortWithJSON - abort chain and response with json
 func (c *Context) AbortWithJSON(v interface{}) {
-	c.index = abortIndex
+	c.Abort()
 	c.JSON(http.StatusOK, v)
 }
 
