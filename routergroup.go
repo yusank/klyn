@@ -25,6 +25,8 @@ type KRoutes interface {
 	PATCH(string, ...HandlerFunc) KRoutes
 	OPTIONS(string, ...HandlerFunc) KRoutes
 	HEAD(string, ...HandlerFunc) KRoutes
+	CONNECT(string, ...HandlerFunc) KRoutes
+	TRACE(string, ...HandlerFunc) KRoutes
 }
 
 type RouterGroup struct {
@@ -91,17 +93,25 @@ func (rg *RouterGroup) HEAD(relativePath string, handlers ...HandlerFunc) KRoute
 	return rg.handle("HEAD", relativePath, handlers)
 }
 
+func (rg *RouterGroup) CONNECT(relativePath string, handlers ...HandlerFunc) KRoutes {
+	return rg.handle("CONNECT", relativePath, handlers)
+}
+
+func (rg *RouterGroup) TRACE(relativePath string, handlers ...HandlerFunc) KRoutes {
+	return rg.handle("TRACE", relativePath, handlers)
+}
+
 // Any - register all method
 func (rg *RouterGroup) Any(relativePath string, handlers ...HandlerFunc) KRoutes {
-	rg.handle("GET", relativePath, handlers)
-	rg.handle("POST", relativePath, handlers)
-	rg.handle("PUT", relativePath, handlers)
-	rg.handle("DELETE", relativePath, handlers)
-	rg.handle("PATCH", relativePath, handlers)
-	rg.handle("OPTIONS", relativePath, handlers)
-	rg.handle("HEAD", relativePath, handlers)
-	rg.handle("CONNECT", relativePath, handlers)
-	rg.handle("TRACE", relativePath, handlers)
+	rg.GET( relativePath, handlers...)
+	rg.POST( relativePath, handlers...)
+	rg.PUT( relativePath, handlers...)
+	rg.DELETE( relativePath, handlers...)
+	rg.PATCH( relativePath, handlers...)
+	rg.OPTIONS( relativePath, handlers...)
+	rg.HEAD( relativePath, handlers...)
+	rg.CONNECT( relativePath, handlers...)
+	rg.TRACE( relativePath, handlers...)
 
 	return rg.returnObj()
 }
