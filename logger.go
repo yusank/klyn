@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"git.yusank.cn/yusank/klyn-log"
+	klynlog "github.com/yusank/klyn-log"
 )
 
 var (
